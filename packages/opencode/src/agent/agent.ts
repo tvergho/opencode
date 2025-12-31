@@ -11,6 +11,7 @@ const log = Log.create({ service: "agent" })
 
 import PROMPT_GENERATE from "./generate.txt"
 import PROMPT_COMPACTION from "./prompt/compaction.txt"
+import PROMPT_DEX from "./prompt/dex.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
@@ -115,6 +116,17 @@ export namespace Agent {
     )
 
     const result: Record<string, Info> = {
+      dex: {
+        name: "dex",
+        description: "Coding assistant with conversation history search via dex tools",
+        tools: { ...defaultTools },
+        options: {},
+        permission: agentPermission,
+        prompt: PROMPT_DEX,
+        mode: "primary",
+        native: true,
+        default: true,
+      },
       build: {
         name: "build",
         tools: { ...defaultTools },
@@ -122,6 +134,7 @@ export namespace Agent {
         permission: agentPermission,
         mode: "primary",
         native: true,
+        hidden: true,
       },
       plan: {
         name: "plan",
@@ -132,6 +145,7 @@ export namespace Agent {
         },
         mode: "primary",
         native: true,
+        hidden: true,
       },
       general: {
         name: "general",
@@ -254,15 +268,17 @@ export namespace Agent {
       }
     }
 
-    // Mark the default agent
-    const defaultName = cfg.default_agent ?? "build"
-    const defaultCandidate = result[defaultName]
-    if (defaultCandidate && defaultCandidate.mode !== "subagent") {
-      defaultCandidate.default = true
-    } else {
-      // Fall back to "build" if configured default is invalid
-      if (result["build"]) {
-        result["build"].default = true
+    // Mark the default agent (dex is already marked as default above, but respect user config)
+    const defaultName = cfg.default_agent ?? "dex"
+    if (defaultName !== "dex") {
+      // User configured a different default, update flags
+      result["dex"].default = false
+      const defaultCandidate = result[defaultName]
+      if (defaultCandidate && defaultCandidate.mode !== "subagent") {
+        defaultCandidate.default = true
+      } else {
+        // Fall back to "dex" if configured default is invalid
+        result["dex"].default = true
       }
     }
 
@@ -288,7 +304,7 @@ export namespace Agent {
   export async function defaultAgent(): Promise<string> {
     const agents = await state()
     const defaultCandidate = Object.values(agents).find((a) => a.default)
-    return defaultCandidate?.name ?? "build"
+    return defaultCandidate?.name ?? "dex"
   }
 
   export async function generate(input: { description: string; model?: { providerID: string; modelID: string } }) {
