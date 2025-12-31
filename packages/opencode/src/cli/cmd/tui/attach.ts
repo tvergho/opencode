@@ -19,6 +19,10 @@ export const AttachCommand = cmd({
         alias: ["s"],
         type: "string",
         describe: "session id to continue",
+      })
+      .option("prompt", {
+        type: "string",
+        describe: "initial prompt to submit immediately",
       }),
   handler: async (args) => {
     let directory = args.dir
@@ -32,7 +36,7 @@ export const AttachCommand = cmd({
     }
     await tui({
       url: args.url,
-      args: { sessionID: args.session },
+      args: { sessionID: args.session, prompt: args.prompt },
       directory,
     })
   },
