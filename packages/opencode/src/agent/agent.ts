@@ -176,6 +176,7 @@ export namespace Agent {
         permission: agentPermission,
         mode: "subagent",
         native: true,
+        hidden: true,
       },
       compaction: {
         name: "compaction",
